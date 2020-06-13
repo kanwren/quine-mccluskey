@@ -23,9 +23,10 @@ extra-source-files:
 
 library
   exposed-modules:
-    QM
-    PI
+    Solver
   other-modules:
+    QM
+    Covering
   -- other-extensions:
   build-depends:
     , base ^>=4.13.0.0

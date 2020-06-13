@@ -1,5 +1,5 @@
-module PI (
-    solvePI
+module Covering (
+    optimalCoverings
   ) where
 
 import Data.Foldable (fold)
@@ -10,9 +10,11 @@ import qualified Data.IntSet as IS
 import Data.Set (Set)
 import qualified Data.Set as S
 
--- | Compute the essential prime implicants
-essentialPIs :: [IntSet] -> Set IntSet
-essentialPIs pis = S.fromList $ mapMaybe only $ fmap containing $ IS.toList allElems
+-- | Compute the sets that are the only provider of certain elements, and so
+-- need to be present in a set cover. This is equivalent to finding the
+-- essential prime implicants.
+essentialSets :: [IntSet] -> Set IntSet
+essentialSets pis = S.fromList $ mapMaybe only $ fmap containing $ IS.toList allElems
   where
     allElems = mconcat pis
     containing x = filter (IS.member x) pis
@@ -36,14 +38,14 @@ subsets elems = fmap (go elems len) [0..len]
               notTaken = go xs (left - 1) n
           in taken ++ notTaken
 
--- | Solve to find all minimal prime implicants that cover all of the minterms.
---   This is equivalent to finding all minimal covering sets.
-solvePI :: [IntSet] -> [[IntSet]]
-solvePI pis = fmap (essentialsList ++) (fromMaybe [] minimalNonEssentials)
+-- | Find all minimal covering sets for the input sets. This is equivalent to
+--   finding the minimal prime implicants that cover all of the minterms.
+optimalCoverings :: [IntSet] -> [[IntSet]]
+optimalCoverings pis = fmap (essentialsList ++) (fromMaybe [] minimalNonEssentials)
   where
     allElems = fold pis
 
-    essentials = essentialPIs pis
+    essentials = essentialSets pis
     essentialsList = S.toList essentials
     rest = S.toList (S.fromList pis S.\\ essentials)
     -- The elements we still have to cover with implicants from rest

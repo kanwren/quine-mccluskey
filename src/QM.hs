@@ -7,12 +7,9 @@ module QM (
     qm
   ) where
 
-import Data.Bits
 import Data.Foldable (traverse_, for_)
 import Data.List (foldl', sortBy, groupBy)
-import Data.Maybe (fromMaybe)
 import Data.Ord (comparing)
-import Data.Semigroup (Max(..))
 
 import Control.Monad.Loops (iterateUntilM)
 import Control.Monad.State (modify)
@@ -27,6 +24,9 @@ import qualified Data.Set as S
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 
+-- | A bit used as part of the representation of a product. For example, for
+-- inputs "wxyz", the product "w'yz" would be represented as the list
+-- '[B0, Bx, B1, B1]'.
 data Bit = B0 | B1 | Bx
   deriving (Eq, Show, Enum, Bounded)
 
@@ -37,19 +37,12 @@ sortAndGroupBy cmp = groupBy (\x y -> cmp x y == EQ) . sortBy cmp
 --   if necessary. The LSB will be at the head.
 toBitVector :: Int -> Int -> [Int]
 toBitVector 0   _ = []
-toBitVector len n = toEnum m : toBitVector (len - 1) d
+toBitVector len n = m : toBitVector (len - 1) d
   where (d, m) = n `divMod` 2
 
--- Compute the number of bits needed to represent a number
-numBits :: Int -> Int
-numBits n = finiteBitSize n - countLeadingZeros n
-
-buildTable :: [Int] -> [Map IntSet [Bit]]
-buildTable minterms =
+buildTable :: Int -> [Int] -> [Map IntSet [Bit]]
+buildTable bits minterms =
   let
-    -- find the number of bits we need
-    maxTerm = fromMaybe 0 $ fmap getMax $ foldMap (Just . Max) minterms
-    bits = numBits maxTerm
     -- turn a minterm into a row, plus the number of set bits
     withVecInfo m =
       let vec = toBitVector bits m
@@ -104,6 +97,9 @@ pass xs = do
   traverse_ (\s -> tell [(s, fullMap M.! s)]) $ S.toList (allMinterms S.\\ checked)
   pure $ filter (not . null) res
 
+-- | Run the Quine-McCluskey algorithm on an input table, computing the
+-- implicants that can't be reduced. For example:
+--
 -- λ> qm $ buildTable [0, 4, 5, 7, 8, 11, 12, 15]
 -- [(fromList [4,5],[B0,B1,B0,Bx]),(fromList [5,7],[B0,B1,Bx,B1]),(fromList [7,15],[Bx,B1,B1,B1]),(fromList [11,15],[B1,Bx,B1,B1]),(fromList [0,4,8,12],[Bx,Bx,B0,B0])]
 qm :: [Map IntSet [Bit]] -> [(IntSet, [Bit])]
