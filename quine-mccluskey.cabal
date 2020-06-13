@@ -23,7 +23,7 @@ extra-source-files:
 
 library
   exposed-modules:
-    MyLib
+    QM
   other-modules:
   -- other-extensions:
   build-depends:
