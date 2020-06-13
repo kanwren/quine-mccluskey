@@ -13,11 +13,11 @@ import qualified Data.Set as S
 -- | Compute the sets that are the only provider of certain elements, and so
 -- need to be present in a set cover. This is equivalent to finding the
 -- essential prime implicants.
-essentialSets :: [IntSet] -> Set IntSet
+essentialSets :: Set IntSet -> Set IntSet
 essentialSets pis = S.fromList $ mapMaybe only $ fmap containing $ IS.toList allElems
   where
-    allElems = mconcat pis
-    containing x = filter (IS.member x) pis
+    allElems = fold pis
+    containing x = filter (IS.member x) $ S.toList pis
 
     only [x] = Just x
     only _   = Nothing
@@ -40,19 +40,21 @@ subsets elems = fmap (go elems len) [0..len]
 
 -- | Find all minimal covering sets for the input sets. This is equivalent to
 --   finding the minimal prime implicants that cover all of the minterms.
-optimalCoverings :: [IntSet] -> [[IntSet]]
-optimalCoverings pis = fmap (essentialsList ++) (fromMaybe [] minimalNonEssentials)
+optimalCoverings :: Set IntSet -> [Set IntSet]
+optimalCoverings pis = fmap (S.union essentials) (fromMaybe [] minimalNonEssentials)
   where
     allElems = fold pis
 
     essentials = essentialSets pis
-    essentialsList = S.toList essentials
-    rest = S.toList (S.fromList pis S.\\ essentials)
+    rest = S.toList (pis S.\\ essentials)
     -- The elements we still have to cover with implicants from rest
     uncoveredElems = allElems IS.\\ fold essentials
 
     -- Check if a set of subsets covers uncoveredElems
     isCovering ss = fold ss == uncoveredElems
     -- All minimal lists of subsets that can cover the remaining elements
-    minimalNonEssentials = listToMaybe $ filter (not . null) $ fmap (filter isCovering) $ subsets rest
+    minimalNonEssentials = listToMaybe
+      $ filter (not . null)
+      $ fmap (filter isCovering . fmap S.fromList)
+      $ subsets rest
 

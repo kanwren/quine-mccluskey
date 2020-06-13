@@ -27,8 +27,8 @@ import qualified Data.Map.Strict as M
 -- | A bit used as part of the representation of a product. For example, for
 -- inputs "wxyz", the product "w'yz" would be represented as the list
 -- '[B0, Bx, B1, B1]'.
-data Bit = B0 | B1 | Bx
-  deriving (Eq, Show, Enum, Bounded)
+data Bit = Bx | B0 | B1
+  deriving (Eq, Show, Ord, Enum, Bounded)
 
 sortAndGroupBy :: (a -> a -> Ordering) -> [a] -> [[a]]
 sortAndGroupBy cmp = groupBy (\x y -> cmp x y == EQ) . sortBy cmp
