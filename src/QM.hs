@@ -30,6 +30,11 @@ import qualified Data.Map.Strict as M
 data Bit = Bx | B0 | B1
   deriving (Eq, Show, Ord, Enum, Bounded)
 
+intToBit :: Int -> Bit
+intToBit 0 = B0
+intToBit 1 = B1
+intToBit _ = Bx
+
 sortAndGroupBy :: (a -> a -> Ordering) -> [a] -> [[a]]
 sortAndGroupBy cmp = groupBy (\x y -> cmp x y == EQ) . sortBy cmp
 
@@ -46,7 +51,7 @@ buildTable bits minterms =
     -- turn a minterm into a row, plus the number of set bits
     withVecInfo m =
       let vec = toBitVector bits m
-      in (IS.singleton m, reverse (fmap toEnum vec), foldl' (+) 0 vec)
+      in (IS.singleton m, reverse (fmap intToBit vec), foldl' (+) 0 vec)
     -- helpers
     third    (_, _, x) = x
     firstTwo (x, y, _) = (x, y)
