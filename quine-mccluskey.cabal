@@ -24,6 +24,7 @@ extra-source-files:
 library
   exposed-modules:
     QM
+    PI
   other-modules:
   -- other-extensions:
   build-depends:
