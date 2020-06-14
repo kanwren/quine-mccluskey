@@ -7,26 +7,29 @@ module Data.QM (
 
 import Data.QM.Covering
 
-import Data.Foldable (fold, traverse_, for_)
-import Data.List (foldl', sortBy, groupBy)
+import Data.Foldable (fold, for_, traverse_)
+import Data.List (foldl', groupBy, sortBy)
 import Data.Ord (comparing)
 
 import Control.Monad.State (modify)
 import Control.Monad.Trans.State.Strict (execStateT)
-import Control.Monad.Writer (tell)
 import Control.Monad.Trans.Writer.Strict (Writer, runWriter)
+import Control.Monad.Writer (tell)
 
-import Data.IntSet (IntSet)
+import           Data.IntSet (IntSet)
 import qualified Data.IntSet as IS
-import Data.Set (Set)
-import qualified Data.Set as S
-import Data.Map.Strict (Map)
+import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
+import           Data.Set (Set)
+import qualified Data.Set as S
 
 -- | A bit used as part of the representation of a product. For example, for
 -- inputs @w@, @x@, @y@, and @z@, the product @not w && y && z@ would be
 -- represented as the list @[B0, Bx, B1, B1]@.
-data Bit = Bx | B0 | B1
+data Bit
+  = Bx -- ^ don't-care
+  | B0 -- ^ false
+  | B1 -- ^ true
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 intToBit :: Int -> Bit
@@ -97,7 +100,8 @@ pass xs = do
   -- checked, since these are the prime implicants
   let fullMap = fold xs
       allMinterms = M.keysSet fullMap
-  traverse_ (\s -> tell [(s, fullMap M.! s)]) $ S.toList $ allMinterms S.\\ checked
+      unchecked = S.toList $ allMinterms S.\\ checked
+  traverse_ (\minterm -> tell [(minterm, fullMap M.! minterm)]) unchecked
   pure $ filter (not . null) res
 
 -- | Run an action until a predicate holds
@@ -127,6 +131,7 @@ quineMccluskey bits minterms dontCares =
       implicantsMap = M.fromList implicants
       -- We leave out the dontCares from our universe when solving the
       -- implicant table
-      solutions = optimalCoverings (IS.fromList minterms) (S.fromList (fmap fst implicants))
+      implicantMinterms = S.fromList $ fmap fst implicants
+      solutions = optimalCoverings (IS.fromList minterms) implicantMinterms
   in fmap (S.map (implicantsMap M.!)) solutions
 

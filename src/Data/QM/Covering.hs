@@ -3,11 +3,11 @@ module Data.QM.Covering (
   ) where
 
 import Data.Foldable (fold)
-import Data.Maybe (mapMaybe, listToMaybe, fromMaybe)
+import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 
-import Data.IntSet (IntSet)
+import           Data.IntSet (IntSet)
 import qualified Data.IntSet as IS
-import Data.Set (Set)
+import           Data.Set (Set)
 import qualified Data.Set as S
 
 -- | Compute the sets that are the only provider of certain elements, and so
@@ -16,10 +16,9 @@ import qualified Data.Set as S
 essentialSets :: IntSet -> Set IntSet -> Set IntSet
 essentialSets toCover pis = S.fromList $ mapMaybe only $ fmap containing $ IS.toList toCover
   where
-    containing x = filter (IS.member x) $ S.toList pis
-
     only [x] = Just x
     only _   = Nothing
+    containing x = filter (IS.member x) $ S.toList pis
 
 -- | Given a list of elements, compute all subsets of length 0, of length 1, and
 -- so on.
@@ -41,7 +40,7 @@ subsets elems = fmap (go elems len) [0..len]
 -- set. This is equivalent to finding the minimal prime implicants that cover
 -- all of the minterms.
 optimalCoverings :: IntSet -> Set IntSet -> [Set IntSet]
-optimalCoverings toCover pis = fmap (S.union essentials) (fromMaybe [] minimalNonEssentials)
+optimalCoverings toCover pis = fmap (S.union essentials) minimalNonEssentials
   where
     essentials = essentialSets toCover pis
     rest = S.toList (pis S.\\ essentials)
@@ -51,7 +50,8 @@ optimalCoverings toCover pis = fmap (S.union essentials) (fromMaybe [] minimalNo
     -- Check if a set of subsets covers uncoveredElems
     isCovering ss = uncoveredElems `IS.isSubsetOf` fold ss
     -- All minimal lists of subsets that can cover the remaining elements
-    minimalNonEssentials = listToMaybe
+    minimalNonEssentials = fromMaybe []
+      $ listToMaybe
       $ filter (not . null)
       $ fmap (filter isCovering . fmap S.fromList)
       $ subsets rest
