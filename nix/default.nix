@@ -5,7 +5,7 @@ let
     overlays = [ (import ./overlay.nix) ];
   };
 
-  hpkgs = pkgs.haskell.packages.ghc883;
+  hpkgs = pkgs.haskell.packages.ghc8101;
 in
 
 rec {

@@ -34,8 +34,8 @@ in {
 
   haskell = super.haskell // {
     packages = super.haskell.packages // {
-      ghc883 = fixGhcWithHoogle
-        (ghcOverride super.haskell.packages.ghc883 haskellOverlay);
+      ghc8101 = fixGhcWithHoogle
+        (ghcOverride super.haskell.packages.ghc8101 haskellOverlay);
     };
   };
 }

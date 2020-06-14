@@ -11,7 +11,6 @@ import Data.Foldable (fold, traverse_, for_)
 import Data.List (foldl', sortBy, groupBy)
 import Data.Ord (comparing)
 
-import Control.Monad.Loops (iterateUntilM)
 import Control.Monad.State (modify)
 import Control.Monad.Trans.State.Strict (execStateT)
 import Control.Monad.Writer (tell)
@@ -100,6 +99,11 @@ pass xs = do
       allMinterms = M.keysSet fullMap
   traverse_ (\s -> tell [(s, fullMap M.! s)]) $ S.toList $ allMinterms S.\\ checked
   pure $ filter (not . null) res
+
+-- | Run an action until a predicate holds
+iterateUntilM :: Monad m => (a -> Bool) -> (a -> m a) -> a -> m a
+iterateUntilM p f = go
+  where go x = if p x then pure x else go =<< f x
 
 -- | Find the prime implicants from an input table
 primeImplicants :: [Map IntSet [Bit]] -> [(IntSet, [Bit])]
