@@ -23,11 +23,9 @@ extra-source-files:
 
 library
   exposed-modules:
-    Solver
+    Data.QM
   other-modules:
-    QM
-    Covering
-  -- other-extensions:
+    Data.QM.Covering
   build-depends:
     , base ^>=4.13.0.0
     , monad-loops

@@ -1,5 +1,5 @@
-module Covering (
-    optimalCoverings
+module Data.QM.Covering (
+    optimalCoverings,
   ) where
 
 import Data.Foldable (fold)
@@ -11,8 +11,8 @@ import Data.Set (Set)
 import qualified Data.Set as S
 
 -- | Compute the sets that are the only provider of certain elements, and so
---   need to be present in a set cover. This is equivalent to finding the
---   essential prime implicants.
+-- need to be present in a set cover. This is equivalent to finding the
+-- essential prime implicants.
 essentialSets :: IntSet -> Set IntSet -> Set IntSet
 essentialSets toCover pis = S.fromList $ mapMaybe only $ fmap containing $ IS.toList toCover
   where
@@ -22,7 +22,7 @@ essentialSets toCover pis = S.fromList $ mapMaybe only $ fmap containing $ IS.to
     only _   = Nothing
 
 -- | Given a list of elements, compute all subsets of length 0, of length 1, and
---   so on.
+-- so on.
 subsets :: [a] -> [[[a]]]
 subsets elems = fmap (go elems len) [0..len]
   where
@@ -38,8 +38,8 @@ subsets elems = fmap (go elems len) [0..len]
           in taken ++ notTaken
 
 -- | Find all minimal covering sets for the first set using sets from the second
---   set. This is equivalent to finding the minimal prime implicants that cover
---   all of the minterms.
+-- set. This is equivalent to finding the minimal prime implicants that cover
+-- all of the minterms.
 optimalCoverings :: IntSet -> Set IntSet -> [Set IntSet]
 optimalCoverings toCover pis = fmap (S.union essentials) (fromMaybe [] minimalNonEssentials)
   where
