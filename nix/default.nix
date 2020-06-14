@@ -22,6 +22,7 @@ rec {
       cabal-install
     ]);
 
+    withHoogle = true;
     exactDeps = true;
   };
 }

@@ -11,6 +11,13 @@ let
     overrides = lib.composeExtensions (old.overrides or (_: _: { })) ovl;
   });
 
+  fixGhcWithHoogle = input: ghcOverride input (hself: hsuper: {
+    # Compose the selector with a null filter to fix error on null packages
+    ghcWithHoogle = selector:
+      hsuper.ghcWithHoogle (ps: builtins.filter (x: x != null) (selector ps));
+    ghc = hsuper.ghc // { withHoogle = hself.ghcWithHoogle; };
+  });
+
   # Package overrides
   packageOverlay = hself: hsuper: { };
 
@@ -27,7 +34,8 @@ in {
 
   haskell = super.haskell // {
     packages = super.haskell.packages // {
-      ghc883 = ghcOverride super.haskell.packages.ghc883 haskellOverlay;
+      ghc883 = fixGhcWithHoogle
+        (ghcOverride super.haskell.packages.ghc883 haskellOverlay);
     };
   };
 }
